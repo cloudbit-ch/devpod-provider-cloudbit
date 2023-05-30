@@ -13,7 +13,8 @@ const (
 )
 
 type Cloudbit struct {
-	computeService compute.ServerService
+	computeService   compute.ServerService
+	elasticIPService compute.ElasticIPService
 }
 
 func NewCloudbit(token string) *Cloudbit {
@@ -21,7 +22,10 @@ func NewCloudbit(token string) *Cloudbit {
 		goclient.WithBase(baseURL),
 		goclient.WithToken(token),
 	)
-	return &Cloudbit{computeService: compute.NewServerService(c)}
+	return &Cloudbit{
+		computeService:   compute.NewServerService(c),
+		elasticIPService: compute.NewElasticIPService(c),
+	}
 }
 
 func (c *Cloudbit) Init(ctx context.Context) error {
@@ -97,4 +101,19 @@ func (c *Cloudbit) GetInstanceByName(ctx context.Context, machineID string) (com
 	}
 
 	return compute.Server{}, errors.New("instance name not found")
+}
+
+func (c *Cloudbit) GetInstancePublicIPByName(ctx context.Context, machineID string) (string, error) {
+	elasticIPList, err := c.elasticIPService.List(ctx, goclient.Cursor{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, elasticIP := range elasticIPList.Items {
+		if elasticIP.Attachment.Name == machineID {
+			return elasticIP.PublicIP, nil
+		}
+	}
+
+	return "", errors.New("instance public ip not found")
 }

@@ -16,8 +16,9 @@ const (
 type Cloudbit struct {
 	computeService   compute.ServerService
 	elasticIPService compute.ElasticIPService
-	locationService  common.LocationService
 	imageService     compute.ImageService
+	locationService  common.LocationService
+	productService   common.ProductService
 }
 
 func NewCloudbit(token string) *Cloudbit {
@@ -28,8 +29,9 @@ func NewCloudbit(token string) *Cloudbit {
 	return &Cloudbit{
 		computeService:   compute.NewServerService(c),
 		elasticIPService: compute.NewElasticIPService(c),
-		locationService:  common.NewLocationService(c),
 		imageService:     compute.NewImageService(c),
+		locationService:  common.NewLocationService(c),
+		productService:   common.NewProductService(c),
 	}
 }
 
@@ -151,4 +153,19 @@ func (c *Cloudbit) GetImageByKey(ctx context.Context, key string) (compute.Image
 	}
 
 	return compute.Image{}, errors.New("compute image not found")
+}
+
+func (c *Cloudbit) GetProductByName(ctx context.Context, name string) (common.Product, error) {
+	productList, err := c.productService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return common.Product{}, err
+	}
+
+	for _, product := range productList.Items {
+		if product.Name == name {
+			return product, nil
+		}
+	}
+
+	return common.Product{}, errors.New("compute product not found")
 }

@@ -3,6 +3,7 @@ package cloudbit
 import (
 	"context"
 	"github.com/flowswiss/goclient"
+	"github.com/flowswiss/goclient/common"
 	"github.com/flowswiss/goclient/compute"
 	"github.com/loft-sh/devpod/pkg/client"
 	"github.com/pkg/errors"
@@ -15,6 +16,7 @@ const (
 type Cloudbit struct {
 	computeService   compute.ServerService
 	elasticIPService compute.ElasticIPService
+	locationService  common.LocationService
 }
 
 func NewCloudbit(token string) *Cloudbit {
@@ -25,6 +27,7 @@ func NewCloudbit(token string) *Cloudbit {
 	return &Cloudbit{
 		computeService:   compute.NewServerService(c),
 		elasticIPService: compute.NewElasticIPService(c),
+		locationService:  common.NewLocationService(c),
 	}
 }
 
@@ -89,7 +92,7 @@ func (c *Cloudbit) Delete(ctx context.Context, machineID string) error {
 }
 
 func (c *Cloudbit) GetInstanceByName(ctx context.Context, machineID string) (compute.Server, error) {
-	serverList, err := c.computeService.List(ctx, goclient.Cursor{})
+	serverList, err := c.computeService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
 		return compute.Server{}, err
 	}
@@ -104,7 +107,7 @@ func (c *Cloudbit) GetInstanceByName(ctx context.Context, machineID string) (com
 }
 
 func (c *Cloudbit) GetInstancePublicIPByName(ctx context.Context, machineID string) (string, error) {
-	elasticIPList, err := c.elasticIPService.List(ctx, goclient.Cursor{})
+	elasticIPList, err := c.elasticIPService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
 		return "", err
 	}
@@ -116,4 +119,19 @@ func (c *Cloudbit) GetInstancePublicIPByName(ctx context.Context, machineID stri
 	}
 
 	return "", errors.New("instance public ip not found")
+}
+
+func (c *Cloudbit) GetLocationByName(ctx context.Context, name string) (common.Location, error) {
+	locationList, err := c.locationService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return common.Location{}, err
+	}
+
+	for _, location := range locationList.Items {
+		if location.Name == name {
+			return location, nil
+		}
+	}
+
+	return common.Location{}, errors.New("instance location not found")
 }

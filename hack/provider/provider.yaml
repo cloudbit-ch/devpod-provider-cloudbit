@@ -5,7 +5,9 @@ description: |-
 icon: https://my.cloudbit.ch/assets/img/cloudbit/logo-icon-neg.svg
 optionGroups:
   - options:
-      - DISK_SIZE
+      - LOCATION
+      - IMAGE
+      - PRODUCT
     name: "CloudBit options"
   - options:
       - AGENT_PATH
@@ -23,6 +25,88 @@ options:
       if [ ! -z "${CLOUDBIT_TOKEN}" ]; then
         echo ${CLOUDBIT_TOKEN}
       fi
+  LOCATION:
+    description: The cloudbit location to use. E.g. BIT1
+    required: true
+    default: BIT1
+    suggestions:
+      - BIT1
+  IMAGE:
+    description: The cloudbit image to use. E.g. linux-ubuntu-20.04-lts
+    required: true
+    default: linux-ubuntu-20.04-lts
+    suggestions:
+      - linux-ubuntu-18.04-lts
+      - linux-ubuntu-16.04-lts
+      - linux-ubuntu-20.04-lts
+      - linux-debian-10
+      - linux-centos-7
+      - linux-centos-8
+      - linux-fedora-coreos-31
+      - linux-rancheros-1.5.5
+      - microsoft-windows-server-2019
+      - linux-fedora-31
+      - microsoft-windows-server-2019-2022
+      - microsoft-windows-server-2016
+      - linux-vyos-crux-1.2.3
+      - linux-vyos-crux-1.2.4
+      - linux-fortigate-6.2.3
+      - linux-fedora-32
+      - linux-vyos-crux-1.2.5
+      - linux-fortigate-6.4.0
+      - linux-flatcar-stable-2512
+      - freebsd-12.2
+      - linux-vyos-crux-1.2.6
+      - linux-flatcar-stable-2765
+      - linux-vyos-crux-1.2.7
+      - linux-fortigate-7.0.0
+      - linux-centos-8.3
+      - linux-almalinux-8
+      - linux-vzlinux-8
+      - linux-fedora-34
+      - linux-debian-11
+      - linux-fedora-coreos-34
+      - linux-flatcar-stable-3033
+      - linux-ubuntu-22.04-lts
+      - linux-almalinux-9
+      - linux-almalinux-8.5
+      - linux-rocky-8.5
+      - linux-fedora-35
+      - linux-fedora-coreos-35
+      - linux-vyos-crux-1.3.1
+      - microsoft-windows-server-2022
+      - freebsd-13.1
+      - linux-flatcar-stable-3227
+      - openbsd-7.2
+      - linux-vyos-crux-1.3.2
+  PRODUCT:
+    description: The cloudbit compute VM product to use. E.g. t1.nano
+    required: true
+    default: t1.nano
+    suggestions:
+      - t1.nano
+      - t1.micro
+      - t1.small
+      - t1.medium
+      - t1.large
+      - t1.xlarge
+      - b1.1x1
+      - b1.1x2
+      - b1.2x2
+      - b1.2x4
+      - b1.2x8
+      - b1.4x8
+      - b1.4x16
+      - b1.4x32
+      - b1.8x32
+      - b1.8x64
+      - b1.8x96
+      - b1.16x96
+      - b1.16x128
+      - b1.24x128
+      - b1.24x256
+      - b1.32x256
+      - b1.32x512
   INACTIVITY_TIMEOUT:
     description: If defined, will automatically stop the VM after the inactivity period.
     default: 10m

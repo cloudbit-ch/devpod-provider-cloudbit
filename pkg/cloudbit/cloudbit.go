@@ -112,6 +112,12 @@ func (c *Cloudbit) Delete(ctx context.Context, machineID string) error {
 		return err
 	}
 
+	// remove instance keypair
+	err = c.DeleteKeyPairByName(ctx, machineID)
+	if err != nil {
+		return err
+	}
+
 	return c.computeService.Delete(ctx, server.ID, true)
 }
 
@@ -241,6 +247,15 @@ func (c *Cloudbit) CreateKeyPair(ctx context.Context, name string, dir string) (
 	}
 
 	return keyPair, nil
+}
+
+func (c *Cloudbit) DeleteKeyPairByName(ctx context.Context, name string) error {
+	keyPair, err := c.GetKeyPairByName(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	return c.keyPairService.Delete(ctx, keyPair.ID)
 }
 
 func GetMachinePublicKey(dir string) (string, error) {

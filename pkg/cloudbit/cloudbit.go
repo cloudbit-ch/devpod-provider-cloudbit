@@ -69,6 +69,20 @@ func (c *Cloudbit) Stop(ctx context.Context, machineID string) error {
 	return nil
 }
 
+func (c *Cloudbit) Start(ctx context.Context, machineID string) error {
+	server, err := c.GetInstanceByName(ctx, machineID)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.computeService.Perform(ctx, server.ID, compute.ServerPerform{Action: "start"})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Cloudbit) Status(ctx context.Context, machineID string) (client.Status, error) {
 	server, err := c.GetInstanceByName(ctx, machineID)
 	if err != nil {

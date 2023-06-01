@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"encoding/base64"
+	"time"
+
 	"github.com/cloudbit/devpod-provider-cloudbit/pkg/cloudbit"
 	"github.com/cloudbit/devpod-provider-cloudbit/pkg/options"
 	"github.com/flowswiss/goclient/compute"
@@ -23,7 +25,24 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		return cloudbit.NewCloudbit(options.Token).CreateInstance(context.Background(), *req)
+		cloudBitClient := cloudbit.NewCloudbit(options.Token)
+		err = cloudBitClient.CreateInstance(context.Background(), *req)
+		if err != nil {
+			return err
+		}
+
+		// wait until instance is available
+		for {
+			_, err = cloudBitClient.GetStatusByInstanceName(context.Background(), options.MachineID)
+			if err == nil {
+				break
+			}
+
+			// make sure we don't spam
+			time.Sleep(time.Second)
+		}
+
+		return nil
 	},
 }
 

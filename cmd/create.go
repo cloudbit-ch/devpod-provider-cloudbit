@@ -11,7 +11,7 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create an instance",
+	Short: "CreateInstance an instance",
 	RunE: func(_ *cobra.Command, args []string) error {
 		options, err := options.FromEnv(false)
 		if err != nil {
@@ -23,44 +23,44 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		return cloudbit.NewCloudbit(options.Token).Create(context.Background(), req)
+		return cloudbit.NewCloudbit(options.Token).CreateInstance(context.Background(), *req)
 	},
 }
 
-func buildCreateInstanceRequest(opts *options.Options) (compute.ServerCreate, error) {
+func buildCreateInstanceRequest(opts *options.Options) (*compute.ServerCreate, error) {
 	cloudBitClient := cloudbit.NewCloudbit(opts.Token)
 
 	loc, err := cloudBitClient.GetLocationByName(context.Background(), opts.Location)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
 	image, err := cloudBitClient.GetImageByKey(context.Background(), opts.Image)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
 	product, err := cloudBitClient.GetProductByName(context.Background(), opts.Product)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
 	network, err := cloudBitClient.GetNetworkByName(context.Background(), opts.Network)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
 	keyPair, err := cloudBitClient.CreateKeyPair(context.Background(), opts.MachineID, opts.MachineFolder)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
 	initScript, err := getInjectKeypairScript(opts.MachineFolder)
 	if err != nil {
-		return compute.ServerCreate{}, err
+		return nil, err
 	}
 
-	serverCreateReq := compute.ServerCreate{
+	serverCreateReq := &compute.ServerCreate{
 		Name:             opts.MachineID,
 		LocationID:       loc.ID,
 		ImageID:          image.ID,

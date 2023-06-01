@@ -50,26 +50,14 @@ func (c *Cloudbit) Init(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cloudbit) Create(ctx context.Context, req compute.ServerCreate) error {
+// CreateInstance created the specified devpod machine instance
+func (c *Cloudbit) CreateInstance(ctx context.Context, req compute.ServerCreate) error {
 	_, err := c.computeService.Create(ctx, req)
 	return err
 }
 
-func (c *Cloudbit) Stop(ctx context.Context, machineID string) error {
-	server, err := c.GetInstanceByName(ctx, machineID)
-	if err != nil {
-		return err
-	}
-
-	_, err = c.computeService.Perform(ctx, server.ID, compute.ServerPerform{Action: "stop"})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Cloudbit) Start(ctx context.Context, machineID string) error {
+// StartInstanceByName starts the specified devpod machine instance
+func (c *Cloudbit) StartInstanceByName(ctx context.Context, machineID string) error {
 	server, err := c.GetInstanceByName(ctx, machineID)
 	if err != nil {
 		return err
@@ -83,30 +71,23 @@ func (c *Cloudbit) Start(ctx context.Context, machineID string) error {
 	return nil
 }
 
-func (c *Cloudbit) Status(ctx context.Context, machineID string) (client.Status, error) {
+// StopInstanceByName stops the specified devpod machine instance
+func (c *Cloudbit) StopInstanceByName(ctx context.Context, machineID string) error {
 	server, err := c.GetInstanceByName(ctx, machineID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	server, err = c.computeService.Get(ctx, server.ID)
+	_, err = c.computeService.Perform(ctx, server.ID, compute.ServerPerform{Action: "stop"})
 	if err != nil {
-		return client.StatusNotFound, err
+		return err
 	}
 
-	switch server.Status.Name {
-	case client.StatusRunning:
-		return client.StatusRunning, nil
-	case client.StatusStopped:
-		return client.StatusStopped, nil
-	case client.StatusBusy:
-		return client.StatusBusy, nil
-	}
-
-	return client.StatusNotFound, nil
+	return nil
 }
 
-func (c *Cloudbit) Delete(ctx context.Context, machineID string) error {
+// DeleteInstanceByName deleted the specified devpod machine instance
+func (c *Cloudbit) DeleteInstanceByName(ctx context.Context, machineID string) error {
 	server, err := c.GetInstanceByName(ctx, machineID)
 	if err != nil {
 		return err
@@ -121,134 +102,167 @@ func (c *Cloudbit) Delete(ctx context.Context, machineID string) error {
 	return c.computeService.Delete(ctx, server.ID, true)
 }
 
-func (c *Cloudbit) GetInstanceByName(ctx context.Context, machineID string) (compute.Server, error) {
-	serverList, err := c.computeService.List(ctx, goclient.Cursor{NoFilter: 1})
-	if err != nil {
-		return compute.Server{}, err
-	}
-
-	for _, server := range serverList.Items {
-		if server.Name == machineID {
-			return server, nil
-		}
-	}
-
-	return compute.Server{}, errors.New("instance name not found")
-}
-
-func (c *Cloudbit) GetInstancePublicIPByName(ctx context.Context, machineID string) (string, error) {
-	elasticIPList, err := c.elasticIPService.List(ctx, goclient.Cursor{NoFilter: 1})
+// GetStatusByInstanceName retrieves the status of the specified devpod machine instance
+func (c *Cloudbit) GetStatusByInstanceName(ctx context.Context, machineID string) (client.Status, error) {
+	server, err := c.GetInstanceByName(ctx, machineID)
 	if err != nil {
 		return "", err
 	}
 
-	for _, elasticIP := range elasticIPList.Items {
-		if elasticIP.Attachment.Name == machineID {
-			return elasticIP.PublicIP, nil
+	instance, err := c.computeService.Get(ctx, server.ID)
+	if err != nil {
+		return client.StatusNotFound, err
+	}
+
+	switch instance.Status.Name {
+	case client.StatusRunning:
+		return client.StatusRunning, nil
+	case client.StatusStopped:
+		return client.StatusStopped, nil
+	case client.StatusBusy:
+		return client.StatusBusy, nil
+	}
+
+	return client.StatusNotFound, nil
+}
+
+// GetInstanceByName retrieves the devpod instance with the specified name
+func (c *Cloudbit) GetInstanceByName(ctx context.Context, machineID string) (*compute.Server, error) {
+	serverList, err := c.computeService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, server := range serverList.Items {
+		if server.Name == machineID {
+			return &server, nil
 		}
 	}
 
-	return "", errors.New("instance public ip not found")
+	return nil, errors.New("instance name not found")
 }
 
-func (c *Cloudbit) GetLocationByName(ctx context.Context, name string) (common.Location, error) {
+// GetElasticIPByInstanceName retrieves the Elastic IP associated with the specified instance name
+func (c *Cloudbit) GetElasticIPByInstanceName(ctx context.Context, machineID string) (*compute.ElasticIP, error) {
+	elasticIPList, err := c.elasticIPService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, elasticIP := range elasticIPList.Items {
+		if elasticIP.Attachment.Name == machineID {
+			return &elasticIP, nil
+		}
+	}
+
+	return nil, errors.New("instance public ip not found")
+}
+
+// GetLocationByName retrieves the compute location with the specified location name
+func (c *Cloudbit) GetLocationByName(ctx context.Context, name string) (*common.Location, error) {
 	locationList, err := c.locationService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
-		return common.Location{}, err
+		return nil, err
 	}
 
 	for _, location := range locationList.Items {
 		if location.Name == name {
-			return location, nil
+			return &location, nil
 		}
 	}
 
-	return common.Location{}, errors.New("compute location not found")
+	return nil, errors.New("compute location not found")
 }
 
-func (c *Cloudbit) GetImageByKey(ctx context.Context, key string) (compute.Image, error) {
+// GetImageByKey retrieves the compute images with the specified image key
+func (c *Cloudbit) GetImageByKey(ctx context.Context, key string) (*compute.Image, error) {
 	imageList, err := c.imageService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
-		return compute.Image{}, err
+		return nil, err
 	}
 
 	for _, image := range imageList.Items {
 		if image.Key == key {
-			return image, nil
+			return &image, nil
 		}
 	}
 
-	return compute.Image{}, errors.New("compute image not found")
+	return nil, errors.New("compute image not found")
 }
 
-func (c *Cloudbit) GetProductByName(ctx context.Context, name string) (common.Product, error) {
+// GetProductByName retrieves the compute product with the specified product name
+func (c *Cloudbit) GetProductByName(ctx context.Context, name string) (*common.Product, error) {
 	productList, err := c.productService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
-		return common.Product{}, err
+		return nil, err
 	}
 
 	for _, product := range productList.Items {
 		if product.Name == name {
-			return product, nil
+			return &product, nil
 		}
 	}
 
-	return common.Product{}, errors.New("compute product not found")
+	return nil, errors.New("compute product not found")
 }
 
-func (c *Cloudbit) GetNetworkByName(ctx context.Context, name string) (compute.Network, error) {
+// GetNetworkByName retrieves the compute network with the specified network name
+func (c *Cloudbit) GetNetworkByName(ctx context.Context, name string) (*compute.Network, error) {
 	networkList, err := c.networkService.List(ctx, goclient.Cursor{NoFilter: 1})
 	if err != nil {
-		return compute.Network{}, err
+		return nil, err
 	}
 
 	for _, network := range networkList.Items {
 		if network.Name == name {
-			return network, nil
+			return &network, nil
 		}
 	}
 
-	return compute.Network{}, errors.New("compute network not found")
+	return nil, errors.New("compute network not found")
 }
 
-func (c *Cloudbit) GetKeyPairByName(ctx context.Context, name string) (compute.KeyPair, error) {
-	keyPairList, err := c.keyPairService.List(ctx, goclient.Cursor{NoFilter: 1})
-	if err != nil {
-		return compute.KeyPair{}, err
-	}
-
-	for _, keyPair := range keyPairList.Items {
-		if keyPair.Name == name {
-			return keyPair, nil
-		}
-	}
-
-	return compute.KeyPair{}, errors.New("compute keypair not found")
-}
-
-func (c *Cloudbit) CreateKeyPair(ctx context.Context, name string, dir string) (compute.KeyPair, error) {
+// CreateKeyPair creates a new compute key pair
+func (c *Cloudbit) CreateKeyPair(ctx context.Context, name string, dir string) (*compute.KeyPair, error) {
 	publicKey, err := GetMachinePublicKey(dir)
 	if err != nil {
-		return compute.KeyPair{}, err
+		return nil, err
 	}
 
 	// reuse the keypair if already exists
 	keyPair, err := c.GetKeyPairByName(ctx, name)
 	if err != nil {
-		keyPair, err = c.keyPairService.Create(ctx, compute.KeyPairCreate{
+		newKeyPair, err := c.keyPairService.Create(ctx, compute.KeyPairCreate{
 			Name:      name,
 			PublicKey: publicKey,
 		})
 		if err != nil {
-			return compute.KeyPair{}, err
+			return nil, err
 		}
 
-		return keyPair, nil
+		return &newKeyPair, nil
 	}
 
 	return keyPair, nil
 }
 
+// GetKeyPairByName retrieves the compute key pair with the specified pair name
+func (c *Cloudbit) GetKeyPairByName(ctx context.Context, name string) (*compute.KeyPair, error) {
+	keyPairList, err := c.keyPairService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, keyPair := range keyPairList.Items {
+		if keyPair.Name == name {
+			return &keyPair, nil
+		}
+	}
+
+	return nil, errors.New("compute keypair not found")
+}
+
+// DeleteKeyPairByName delete the compute key pair with the specified pair name
 func (c *Cloudbit) DeleteKeyPairByName(ctx context.Context, name string) error {
 	keyPair, err := c.GetKeyPairByName(ctx, name)
 	if err != nil {
@@ -258,6 +272,7 @@ func (c *Cloudbit) DeleteKeyPairByName(ctx context.Context, name string) error {
 	return c.keyPairService.Delete(ctx, keyPair.ID)
 }
 
+// GetMachinePublicKey retrieves the machine's public key from the specified directory
 func GetMachinePublicKey(dir string) (string, error) {
 	publicKeyBase, err := ssh.GetPublicKeyBase(dir)
 	if err != nil {

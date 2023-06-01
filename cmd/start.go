@@ -12,7 +12,7 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start an instance",
+	Short: "StartInstanceByName an instance",
 	RunE: func(_ *cobra.Command, args []string) error {
 		options, err := options.FromEnv(false)
 		if err != nil {
@@ -20,14 +20,14 @@ var startCmd = &cobra.Command{
 		}
 
 		cloudBitClient := cloudbit.NewCloudbit(options.Token)
-		err = cloudBitClient.Start(context.Background(), options.MachineID)
+		err = cloudBitClient.StartInstanceByName(context.Background(), options.MachineID)
 		if err != nil {
 			return err
 		}
 
 		// wait until running
 		for {
-			status, err := cloudBitClient.Status(context.Background(), options.MachineID)
+			status, err := cloudBitClient.GetStatusByInstanceName(context.Background(), options.MachineID)
 			if err != nil {
 				log.Default.Errorf("Error retrieving instance status: %v", err)
 				break

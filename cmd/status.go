@@ -18,7 +18,7 @@ var statusCmd = &cobra.Command{
 			return err
 		}
 
-		status, err := cloudbit.NewCloudbit(options.Token).Status(context.Background(), options.MachineID)
+		status, err := cloudbit.NewCloudbit(options.Token).GetStatusByInstanceName(context.Background(), options.MachineID)
 		if err != nil {
 			return err
 		}

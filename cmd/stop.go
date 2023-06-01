@@ -20,14 +20,14 @@ var stopCmd = &cobra.Command{
 		}
 
 		cloudBitClient := cloudbit.NewCloudbit(options.Token)
-		err = cloudBitClient.Stop(context.Background(), options.MachineID)
+		err = cloudBitClient.StopInstanceByName(context.Background(), options.MachineID)
 		if err != nil {
 			return err
 		}
 
 		// wait until stopped
 		for {
-			status, err := cloudBitClient.Status(context.Background(), options.MachineID)
+			status, err := cloudBitClient.GetStatusByInstanceName(context.Background(), options.MachineID)
 			if err != nil {
 				log.Default.Errorf("Error retrieving instance status: %v", err)
 				break

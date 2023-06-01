@@ -31,13 +31,13 @@ var commandCmd = &cobra.Command{
 			return fmt.Errorf("load private key: %w", err)
 		}
 
-		publicIP, err := cloudbit.NewCloudbit(options.Token).GetInstancePublicIPByName(context.Background(), options.MachineID)
+		elasticIP, err := cloudbit.NewCloudbit(options.Token).GetElasticIPByInstanceName(context.Background(), options.MachineID)
 		if err != nil {
 			return err
 		}
 
 		// dial external address
-		sshClient, err := ssh.NewSSHClient("devpod", publicIP+":22", privateKey)
+		sshClient, err := ssh.NewSSHClient("devpod", elasticIP.PublicIP+":22", privateKey)
 		if err != nil {
 			return errors.Wrap(err, "create ssh client")
 		}

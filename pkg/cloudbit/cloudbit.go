@@ -191,18 +191,39 @@ func (c *Cloudbit) GetNetworkByName(ctx context.Context, name string) (compute.N
 	return compute.Network{}, errors.New("compute network not found")
 }
 
+func (c *Cloudbit) GetKeyPairByName(ctx context.Context, name string) (compute.KeyPair, error) {
+	keyPairList, err := c.keyPairService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return compute.KeyPair{}, err
+	}
+
+	for _, keyPair := range keyPairList.Items {
+		if keyPair.Name == name {
+			return keyPair, nil
+		}
+	}
+
+	return compute.KeyPair{}, errors.New("compute keypair not found")
+}
+
 func (c *Cloudbit) CreateKeyPair(ctx context.Context, name string, dir string) (compute.KeyPair, error) {
 	publicKey, err := GetMachinePublicKey(dir)
 	if err != nil {
 		return compute.KeyPair{}, err
 	}
 
-	keyPair, err := c.keyPairService.Create(ctx, compute.KeyPairCreate{
-		Name:      name,
-		PublicKey: publicKey,
-	})
+	// reuse the keypair if already exists
+	keyPair, err := c.GetKeyPairByName(ctx, name)
 	if err != nil {
-		return compute.KeyPair{}, err
+		keyPair, err = c.keyPairService.Create(ctx, compute.KeyPairCreate{
+			Name:      name,
+			PublicKey: publicKey,
+		})
+		if err != nil {
+			return compute.KeyPair{}, err
+		}
+
+		return keyPair, nil
 	}
 
 	return keyPair, nil

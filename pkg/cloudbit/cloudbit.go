@@ -2,10 +2,12 @@ package cloudbit
 
 import (
 	"context"
+	"encoding/base64"
 	"github.com/flowswiss/goclient"
 	"github.com/flowswiss/goclient/common"
 	"github.com/flowswiss/goclient/compute"
 	"github.com/loft-sh/devpod/pkg/client"
+	"github.com/loft-sh/devpod/pkg/ssh"
 	"github.com/pkg/errors"
 )
 
@@ -17,6 +19,8 @@ type Cloudbit struct {
 	computeService   compute.ServerService
 	elasticIPService compute.ElasticIPService
 	imageService     compute.ImageService
+	keyPairService   compute.KeyPairService
+	networkService   compute.NetworkService
 	locationService  common.LocationService
 	productService   common.ProductService
 }
@@ -30,6 +34,8 @@ func NewCloudbit(token string) *Cloudbit {
 		computeService:   compute.NewServerService(c),
 		elasticIPService: compute.NewElasticIPService(c),
 		imageService:     compute.NewImageService(c),
+		keyPairService:   compute.NewKeyPairService(c),
+		networkService:   compute.NewNetworkService(c),
 		locationService:  common.NewLocationService(c),
 		productService:   common.NewProductService(c),
 	}
@@ -45,8 +51,8 @@ func (c *Cloudbit) Init(ctx context.Context) error {
 }
 
 func (c *Cloudbit) Create(ctx context.Context, req compute.ServerCreate) error {
-	//c.computeService.Create()
-	return nil
+	_, err := c.computeService.Create(ctx, req)
+	return err
 }
 
 func (c *Cloudbit) Stop(ctx context.Context, machineID string) error {
@@ -168,4 +174,50 @@ func (c *Cloudbit) GetProductByName(ctx context.Context, name string) (common.Pr
 	}
 
 	return common.Product{}, errors.New("compute product not found")
+}
+
+func (c *Cloudbit) GetNetworkByName(ctx context.Context, name string) (compute.Network, error) {
+	networkList, err := c.networkService.List(ctx, goclient.Cursor{NoFilter: 1})
+	if err != nil {
+		return compute.Network{}, err
+	}
+
+	for _, network := range networkList.Items {
+		if network.Name == name {
+			return network, nil
+		}
+	}
+
+	return compute.Network{}, errors.New("compute network not found")
+}
+
+func (c *Cloudbit) CreateKeyPair(ctx context.Context, name string, dir string) (compute.KeyPair, error) {
+	publicKey, err := GetMachinePublicKey(dir)
+	if err != nil {
+		return compute.KeyPair{}, err
+	}
+
+	keyPair, err := c.keyPairService.Create(ctx, compute.KeyPairCreate{
+		Name:      name,
+		PublicKey: publicKey,
+	})
+	if err != nil {
+		return compute.KeyPair{}, err
+	}
+
+	return keyPair, nil
+}
+
+func GetMachinePublicKey(dir string) (string, error) {
+	publicKeyBase, err := ssh.GetPublicKeyBase(dir)
+	if err != nil {
+		return "", err
+	}
+
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyBase)
+	if err != nil {
+		return "", err
+	}
+
+	return string(publicKey), nil
 }

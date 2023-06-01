@@ -8,11 +8,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "devpod-provider-cloudbit",
-	Short:         "Cloudbit Provider commands",
-	SilenceErrors: true,
-	SilenceUsage:  true,
-
+	Use:          "devpod-provider-cloudbit",
+	Short:        "Cloudbit Provider commands",
+	SilenceUsage: true,
 	PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
 		log.Default.MakeRaw()
 		return nil

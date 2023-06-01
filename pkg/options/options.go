@@ -32,23 +32,23 @@ func FromEnv(skipMachine bool) (*Options, error) {
 		}
 	}
 
-	if retOptions.Token, err = fromEnvOrError("TOKEN"); err != nil {
+	if retOptions.Token, err = fromEnvOrError("CLOUDBIT_TOKEN"); err != nil {
 		return nil, err
 	}
 
-	if retOptions.Location, err = fromEnvOrError("LOCATION"); err != nil {
+	if retOptions.Location, err = fromEnvOrError("CLOUDBIT_LOCATION"); err != nil {
 		return nil, err
 	}
 
-	if retOptions.Image, err = fromEnvOrError("IMAGE"); err != nil {
+	if retOptions.Image, err = fromEnvOrError("CLOUDBIT_IMAGE"); err != nil {
 		return nil, err
 	}
 
-	if retOptions.Product, err = fromEnvOrError("PRODUCT"); err != nil {
+	if retOptions.Product, err = fromEnvOrError("CLOUDBIT_PRODUCT"); err != nil {
 		return nil, err
 	}
 
-	retOptions.Network = os.Getenv("NETWORK")
+	retOptions.Network = os.Getenv("CLOUDBIT_NETWORK")
 	if retOptions.Network == "" {
 		retOptions.Network = "Default Network"
 	}

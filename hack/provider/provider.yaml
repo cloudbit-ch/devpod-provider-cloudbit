@@ -5,9 +5,9 @@ description: |-
 icon: https://my.cloudbit.ch/assets/img/cloudbit/logo-icon-neg.svg
 optionGroups:
   - options:
-      - LOCATION
-      - IMAGE
-      - PRODUCT
+      - CLOUDBIT_LOCATION
+      - CLOUDBIT_IMAGE
+      - CLOUDBIT_PRODUCT
     name: "CloudBit options"
   - options:
       - AGENT_PATH
@@ -17,7 +17,7 @@ optionGroups:
       - INJECT_GIT_CREDENTIALS
     name: "Agent options"
 options:
-  TOKEN:
+  CLOUDBIT_TOKEN:
     description: The CloudBit token to use.
     required: true
     password: true
@@ -25,13 +25,13 @@ options:
       if [ ! -z "${CLOUDBIT_TOKEN}" ]; then
         echo ${CLOUDBIT_TOKEN}
       fi
-  LOCATION:
+  CLOUDBIT_LOCATION:
     description: The cloudbit location to use. E.g. BIT1
     required: true
     default: BIT1
     suggestions:
       - BIT1
-  IMAGE:
+  CLOUDBIT_IMAGE:
     description: The cloudbit image to use. E.g. linux-ubuntu-20.04-lts
     required: true
     default: linux-ubuntu-20.04-lts
@@ -79,7 +79,7 @@ options:
       - linux-flatcar-stable-3227
       - openbsd-7.2
       - linux-vyos-crux-1.3.2
-  PRODUCT:
+  CLOUDBIT_PRODUCT:
     description: The cloudbit compute VM product to use. E.g. b1.1x1
     required: true
     default: b1.1x1

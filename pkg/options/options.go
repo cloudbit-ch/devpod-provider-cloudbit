@@ -9,7 +9,11 @@ type Options struct {
 	MachineID     string
 	MachineFolder string
 
-	Token string
+	Token    string
+	Location string
+	Image    string
+	Product  string
+	Network  string
 }
 
 func FromEnv(skipMachine bool) (*Options, error) {
@@ -17,22 +21,36 @@ func FromEnv(skipMachine bool) (*Options, error) {
 
 	var err error
 	if !skipMachine {
-		retOptions.MachineID, err = fromEnvOrError("MACHINE_ID")
-		if err != nil {
+		if retOptions.MachineID, err = fromEnvOrError("MACHINE_ID"); err != nil {
 			return nil, err
 		}
 		// prefix with devpod-
 		retOptions.MachineID = "devpod-" + retOptions.MachineID
 
-		retOptions.MachineFolder, err = fromEnvOrError("MACHINE_FOLDER")
-		if err != nil {
+		if retOptions.MachineFolder, err = fromEnvOrError("MACHINE_FOLDER"); err != nil {
 			return nil, err
 		}
 	}
 
-	retOptions.Token, err = fromEnvOrError("TOKEN")
-	if err != nil {
+	if retOptions.Token, err = fromEnvOrError("TOKEN"); err != nil {
 		return nil, err
+	}
+
+	if retOptions.Location, err = fromEnvOrError("LOCATION"); err != nil {
+		return nil, err
+	}
+
+	if retOptions.Image, err = fromEnvOrError("IMAGE"); err != nil {
+		return nil, err
+	}
+
+	if retOptions.Product, err = fromEnvOrError("PRODUCT"); err != nil {
+		return nil, err
+	}
+
+	retOptions.Network = os.Getenv("NETWORK")
+	if retOptions.Network == "" {
+		retOptions.Network = "Default Network"
 	}
 
 	return retOptions, nil

@@ -12,7 +12,7 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "StartInstanceByName an instance",
+	Short: "Start an instance",
 	RunE: func(_ *cobra.Command, args []string) error {
 		options, err := options.FromEnv(false)
 		if err != nil {

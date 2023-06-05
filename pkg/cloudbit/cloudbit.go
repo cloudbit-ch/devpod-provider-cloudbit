@@ -52,7 +52,13 @@ func (c *Cloudbit) Init(ctx context.Context) error {
 
 // CreateInstance created the specified devpod machine instance
 func (c *Cloudbit) CreateInstance(ctx context.Context, req compute.ServerCreate) error {
-	_, err := c.computeService.Create(ctx, req)
+	// re-use instance if exists
+	_, err := c.GetInstanceByName(ctx, req.Name)
+	if err == nil {
+		return nil
+	}
+
+	_, err = c.computeService.Create(ctx, req)
 	return err
 }
 

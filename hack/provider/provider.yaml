@@ -8,6 +8,7 @@ optionGroups:
       - CLOUDBIT_LOCATION
       - CLOUDBIT_IMAGE
       - CLOUDBIT_PRODUCT
+      - CLOUDBIT_NETWORK
     name: "CloudBit options"
   - options:
       - AGENT_PATH

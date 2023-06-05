@@ -31,6 +31,12 @@ options:
     default: BIT1
     suggestions:
       - BIT1
+  CLOUDBIT_NETWORK:
+    description: The cloudbit network to use. E.g. "Default Network"
+    required: true
+    default: "Default Network"
+    suggestions:
+      - "Default Network"
   CLOUDBIT_IMAGE:
     description: The cloudbit image to use. E.g. linux-ubuntu-20.04-lts
     required: true

@@ -48,9 +48,8 @@ func FromEnv(skipMachine bool) (*Options, error) {
 		return nil, err
 	}
 
-	retOptions.Network = os.Getenv("CLOUDBIT_NETWORK")
-	if retOptions.Network == "" {
-		retOptions.Network = "Default Network"
+	if retOptions.Network, err = fromEnvOrError("CLOUDBIT_NETWORK"); err != nil {
+		return nil, err
 	}
 
 	return retOptions, nil
